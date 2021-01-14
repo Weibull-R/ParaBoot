@@ -65,3 +65,4 @@ plot.wblr(obj_list, is.plot.legend=FALSE, main="Pivotal Analysis of Complete Fai
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ![](https://raw.githubusercontent.com/openrelia/WeibullR.gallery/master/images/complete2p.jpg)
+![](https://github.com/Weibull-R/ParaBoot/tree/main/images/complete2p.jpg)
