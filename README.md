@@ -64,4 +64,66 @@ obj_list[[S+1]]<-obj
 plot.wblr(obj_list, is.plot.legend=FALSE, main="Pivotal Analysis of Complete Failures" )
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-![](https://raw.githubusercontent.com/openrelia/WeibullR.gallery/master/images/complete2p.jpg)
+ 
+
+###  Failure Data with Censoring, Weibull Sampling
+
+The co-author of WeibullR, Jurgen Symynck, was fascinated by the pivotal
+analysis and its application on an extreme example with only 3 complete failures
+and 10 type 2 suspended data points. As one attempts the parametric bootstrap on
+such mixed data (failure and censoring) it is notorious that the median line
+seems to wander inexplicably. What Jurgen accidentally found was that if he
+generated pivotal points in similar fashion to the unity points described above,
+the fitted parameters of those points, without suspensions, became pleasing
+parameters to use for the bootstrap. Pleasing because the median produced by a
+large number of parametric bootstrap samples describes a line reasonably close
+to the unity line.  This is important because it is desirable to have a uniform
+basis for translation and rotation to example data parameters
+
+It is noted that pivotal points, when distributed according to the percentile
+plotting positions of the original data produce a unity line. This is exactly
+how they were generated.
+
+Script Jurgen2p.r implements the extreme example with type 2 censored values.
+Script arbcens2p.r implements a case where example data would contain
+arbitrarily positioned censored values. In both cases the pivotal points are
+displayed in their unity line, which is shown to match the bootstrap median.
+
+ 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Jurgen2p.r
+library(WeibullR)
+S\<-20
+CI\<-.8
+nf=3
+ns=10
+set.seed(1234)
+fail_pts\<-rweibull(nf,1,1)
+median_ranks\<-getPPP(x=fail_pts, s=rep(10,ns))\$ppp
+pivotal_pts\<-qweibull(median_ranks,1,1)
+par\<-lslr(getPPP(pivotal_pts))
+obj_list\<-list()
+for(x in 1:S) {
+	sample\<-rweibull(nf,par[2],par[1])
+	obj_list[[x]]\<-wblr(x=sample, s=rep(10,ns), col="transparent")
+	obj_list[[x]]\<-wblr.fit(obj_list[[x]], col="gray", lwd=.1)
+}
+\# Back end function pivotal.rr can be used to identify the median from a
+\# parametric bootsrap of 10,000 samples
+\# dp\<-sort(c(getPPP(rweibull(6,1,1))\$ppp, pweibull(1,1,1)))
+\# bounds\<-pivotal.rr(getPPP(fail_pts, rep(10,ns)), R2=0.0, CI=1.0, P1=par[1],
+P2=par[2],unrel=dp)
+\# median\<-bounds[5000,]
+\# graphic presentation
+\# Pivotal points, when distributed according to the percentile
+\# plotting positions of the original data produce a unity line
+obj\<-wblr(x=pivotal_pts, s=rep(10,ns), col="black")
+obj\<-wblr.fit(obj, col="transparent")
+obj\<-wblr.conf(obj, ci=CI, lty="dashed", lwd=2, col="red")
+obj_list[[S+1]]\<-obj
+plot.wblr(obj_list, is.plot.legend=FALSE, main="Pivotal Analysis of Failure Data
+with Type 2 Censored Values" )
+\# points(exp(median), p2y(dp), col="blue")
+#
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
