@@ -64,7 +64,7 @@ obj_list[[S+1]]<-obj
 plot.wblr(obj_list, is.plot.legend=FALSE, main="Pivotal Analysis of Complete Failures" )
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-\<\<\<\<\<\<\< HEAD  
+ 
 
 ### Failure Data with Censoring, Weibull Sampling
 
@@ -133,53 +133,52 @@ with Type 2 Censored Values" )
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #abcens2p.r
 
-\# this function is required to fill in censored event times in the unity_TEDF					
-unity_TEDF\<- function(pivotal_pts, event_vec) {					
-	time_vec\<-NULL				
-	piv_num\<-1				
-	for(ev in 1:length(event_vec)) {				
-		if(event_vec[ev] == 1) {			
-			time_vec \<- c(time_vec, pivotal_pts[piv_num])		
-			piv_num \<- piv_num + 1		
-		}else{			
-			if(piv_num \> 1 && piv_num\<length(pivotal_pts)+1) {		
-				midtime\<-sum(pivotal_pts[(piv_num-1):piv_num])/2	
-				time_vec \<- c(time_vec, midtime)	
-			}		
-			if(piv_num == 1 ) {		
-				midtime\<- pivotal_pts[1]/2	
-				time_vec \<- c(time_vec, midtime)	
-			}		
-			if(piv_num \>length(pivotal_pts) )  {		
-				endtime\<-max(pivotal_pts) + 10	
-				time_vec \<- c(time_vec, endtime)	
-			}
-		}
-	}				
-	return(data.frame(time=time_vec, event=event_vec))				
-}					
+\# this function is required to fill in censored event times in the unity_TEDF                  unity_TEDF\<- function(pivotal_pts, event_vec) {                    
+    time_vec\<-NULL             
+    piv_num\<-1             
+    for(ev in 1:length(event_vec)) {                
+        if(event_vec[ev] == 1) {            
+            time_vec \<- c(time_vec, pivotal_pts[piv_num])      
+            piv_num \<- piv_num + 1     
+        }else{          
+            if(piv_num \> 1 && piv_num\<length(pivotal_pts)+1) {        
+                midtime\<-sum(pivotal_pts[(piv_num-1):piv_num])/2   
+                time_vec \<- c(time_vec, midtime)   
+            }       
+            if(piv_num == 1 ) {     
+                midtime\<- pivotal_pts[1]/2 
+                time_vec \<- c(time_vec, midtime)   
+            }       
+            if(piv_num \>length(pivotal_pts) )  {       
+                endtime\<-max(pivotal_pts) + 10 
+                time_vec \<- c(time_vec, endtime)   
+            }
+        }
+    }               
+    return(data.frame(time=time_vec, event=event_vec))              
+}                   
 
 
-library(WeibullR)	
-S\<-20	
-CI\<-.8	
-nf=20	
-ns=5	
+library(WeibullR)   
+S\<-20  
+CI\<-.8 
+nf=20   
+ns=5    
 set.seed(4321)
-example_data\<-rweibull(nf+ns, 1,1)	
-example_TEDF\<-data.frame(time=example_data, event=c(rep(1,nf), rep(0,ns)))	
-NDX\<-order(example_data)	
-example_TEDF\<-example_TEDF[NDX,]	
-event_vec\<-example_TEDF\$event	
+example_data\<-rweibull(nf+ns, 1,1) 
+example_TEDF\<-data.frame(time=example_data, event=c(rep(1,nf), rep(0,ns))) 
+NDX\<-order(example_data)   
+example_TEDF\<-example_TEDF[NDX,]   
+event_vec\<-example_TEDF\$event 
 median_ranks\<-getPPP(example_TEDF)\$ppp
 pivotal_pts\<-qweibull(median_ranks,1,1)
 par\<-lslr(getPPP(pivotal_pts))
 obj_list\<-list()
-for(x in 1:S) {		
-	sample\<-rweibull((nf+ns),par[2],par[1])	
-	sample_TEDF\<-data.frame(time=sort(sample), event=event_vec)	
-	obj_list[[x]]\<-wblr(sample_TEDF, col="transparent")	
-	obj_list[[x]]\<-wblr.fit(obj_list[[x]], col="gray", lwd=.1)	
+for(x in 1:S) {     
+    sample\<-rweibull((nf+ns),par[2],par[1])    
+    sample_TEDF\<-data.frame(time=sort(sample), event=event_vec)    
+    obj_list[[x]]\<-wblr(sample_TEDF, col="transparent")    
+    obj_list[[x]]\<-wblr.fit(obj_list[[x]], col="gray", lwd=.1) 
 }
 \# graphic presentation
 \# Pivotal points, when distributed according to the percentile
@@ -215,4 +214,124 @@ median_beta\<-rise/run
 print(paste0("median eta:  ",median_eta))
 print(paste0("median beta:  ",median_beta))
 #
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ 
+
+### Bootstrapping with Three Parameters
+
+Previous work on bootstrapping with data fitted to three parameters was included
+in the WeibullR source code for version 1.0.12 in a file pivotal3pw.r dated
+3/26/2019 (almost 2 years ago as of this writing). As had been common through
+previous implementations in WeibullR the bootstrap median was the focus of
+attention and the basis for translation and rotation. In that work performed on
+complete failure samples only the third parameter, t0, from the fitted example
+was used in the bootstrap sampling. This required exclusion of some samples that
+produced negative time values.
+
+The method of bootstrapping used in that test code generated pleasing bootstrap
+bounds with the median closely matching the unity line. However, when applied to
+data examples including censoring the bootstrap median was found to vary wildly.
+This stopped development which was not continued until preparing this writing.
+
+The method used to generate the 2-parameter, arbitrarily censored example
+script, arbcens2p.r, was found to provide a good model expandable to the
+3-parameter case. The methodology is to generate the bootstrap samples on the
+2-parameter basis, these are then fitted to the 3-parameter model. This method
+provides a pleasingly consistent method to carry from complete failure cases
+through all types of censoring. For all bound translation and rotation needs the
+unity line defined by the pivotal points in the plotting positions determined by
+the example data will be the basis.
+
+The script arbcens3p examples this methodology and can be shown applicable to
+complete failure data by setting the ns to zero. This will now be the basis for
+3p pivotal bound development for WeibullR.
+
+ 
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#abcens3p.r
+
+\# this function is required to fill in censored event times in the unity_TEDF					
+unity_TEDF\<- function(pivotal_pts, event_vec) {	
+	time_vec\<-NULL	
+	piv_num\<-1	
+	for(ev in 1:length(event_vec)) {
+		if(event_vec[ev] == 1) {
+			time_vec \<- c(time_vec, pivotal_pts[piv_num])		
+			piv_num \<- piv_num + 1		
+		}else{			
+			if(piv_num \> 1 && piv_num\<length(pivotal_pts)+1) {		
+				midtime\<-sum(pivotal_pts[(piv_num-1):piv_num])/2	
+				time_vec \<- c(time_vec, midtime)	
+			}	
+			if(piv_num == 1 ) {	
+				midtime\<- pivotal_pts[1]/2	
+				time_vec \<- c(time_vec, midtime)
+			}	
+			if(piv_num \>length(pivotal_pts) )  {	
+				endtime\<-max(pivotal_pts) + 10	
+				time_vec \<- c(time_vec, endtime)	
+			}
+		}
+	}
+	return(data.frame(time=time_vec, event=event_vec))				
+}					
+
+ 
+
+library(WeibullR)		
+Sg\<-20	
+Sb\<-1000	
+CI\<-.8	
+nf=20	
+ns=5	
+set.seed(4321)		
+example_data\<-rweibull(nf+ns, 1,1)	
+example_TEDF\<-data.frame(time=example_data, event=c(rep(1,nf), rep(0,ns)))	
+NDX\<-order(example_data)	
+example_TEDF\<-example_TEDF[NDX,]	
+event_vec\<-example_TEDF\$event	
+median_ranks\<-getPPP(example_TEDF)\$ppp	
+pivotal_pts\<-qweibull(median_ranks,1,1)	
+par\<-lslr(getPPP(pivotal_pts))	
+obj_list\<-list()
+for(x in 1:Sg) {
+	sample\<-rweibull((nf+ns),par[2],par[1])
+	sample_TEDF\<-data.frame(time=sort(sample), event=event_vec)
+	obj_list[[x]]\<-wblr(sample_TEDF, col="transparent")
+	obj_list[[x]]\<-wblr.fit(obj_list[[x]], dist="weibull3p", col="gray", lwd=.1)
+}		
+\# descriptive percentiles	
+dp\<-c(.001,.01, .02, .05, .10, .15, .20, .30, .40, .50,  .60, .70, .80, .90,
+.95, .99,.999)
+boot.mat\<-NULL	
+for(x in 1:Sb) {
+	sample\<-rweibull((nf+ns),par[2],par[1])
+	sample_TEDF\<-data.frame(time=sort(sample), event=event_vec)
+	fit\<-lslr(getPPP(sample_TEDF), npar=3)
+	xvals\<- qweibull(dp,fit[2], fit[1])+fit[3]
+	boot.mat\<-rbind(boot.mat, xvals)
+}
+boot.mat\<-apply(boot.mat,2,sort)
+lo_row\<-ceiling(Sb\*(1-CI)/2)
+up_row\<-floor(Sb\*(1-(1-CI)/2))
+Lower\<-boot.mat[lo_row,]
+Lower\<-sapply(Lower,function(X) ifelse(X\<=0,NA,X))
+Upper\<-boot.mat[up_row,]
+Median\<-boot.mat[floor(Sb/2),]	
+\# graphic presentation	
+\# Pivotal points, when distributed according to the percentile	
+\# plotting positions of the original data produce a unity line	
+obj\<-wblr(unity_TEDF(pivotal_pts, event_vec), col="transparent")	
+obj\<-wblr.fit(obj, col="transparent")	
+obj\<-wblr.conf(obj, ci=CI, lty="dashed", lwd=1, col="red")	
+obj_list[[S+1]]\<-obj	
+plot.wblr(obj_list, is.plot.legend=FALSE, 	
+xlim=c(.01,20),	
+main="Pivotal Analysis of Failure Data with Aribitrary Censoring \\nand 3p
+Modeling" )
+points(Lower, p2y(dp), type="l", col="blue")	
+points(Upper, p2y(dp), type="l", col="blue")
+points(Median, p2y(dp), type="l", col="forestgreen")	
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
