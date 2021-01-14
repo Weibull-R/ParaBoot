@@ -64,6 +64,7 @@ obj_list[[S+1]]<-obj
 plot.wblr(obj_list, is.plot.legend=FALSE, main="Pivotal Analysis of Complete Failures" )
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+<<<<<<< HEAD
  
 
 ###  Failure Data with Censoring, Weibull Sampling
@@ -127,3 +128,5 @@ with Type 2 Censored Values" )
 \# points(exp(median), p2y(dp), col="blue")
 #
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+>>>>>>> 694c77374a601c02e2812c94cb3c5fb9e0f17810
