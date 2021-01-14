@@ -52,9 +52,9 @@ set.seed(654321)
 unity_pts<-qweibull(getPPP(rweibull(n,1,1))$ppp,1,1)
 obj_list<-list()
 for(x in 1:S) {
-	sample\<-rweibull(n,1,1)
-	obj_list[[x]]<-wblr(sample, col="transparent")
-	obj_list[[x]]<-wblr.fit(obj_list[[x]], col="gray", lwd=.1)
+    sample\<-rweibull(n,1,1)
+    obj_list[[x]]<-wblr(sample, col="transparent")
+    obj_list[[x]]<-wblr.fit(obj_list[[x]], col="gray", lwd=.1)
 }
 # graphic presentation
 obj<-wblr(unity_pts, col="transparent")
@@ -64,6 +64,4 @@ obj_list[[S+1]]<-obj
 plot.wblr(obj_list, is.plot.legend=FALSE, main="Pivotal Analysis of Complete Failures" )
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-![](../../../Dropbox/Weibull_Studies/3rd pramameter studies/The PivotalProblem/complete2p.jpeg)
-
- 
+![](https://raw.githubusercontent.com/openrelia/WeibullR.gallery/master/images/complete2p.jpg)
