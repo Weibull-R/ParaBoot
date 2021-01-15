@@ -1,0 +1,13 @@
+Package: ParaBoot
+Title: New ParaBoot code for testing
+Version: 0.0.10
+Date: 2021-1-10
+Author: David J. Silkworth
+Maintainer: Jacob T. Ormerod <jake@openreliability.org>
+Description:  Rework LSLR code into an LSLRmodel class
+License: GPL (>= 3)
+LazyLoad: yes
+Depends: WeibullR
+SystemRequirements: C++11
+Imports: Rcpp (>= 0.12.4)
+LinkingTo: Rcpp, RcppArmadillo
