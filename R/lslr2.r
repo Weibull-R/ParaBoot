@@ -47,4 +47,9 @@ lslr2<-function(x, dist="weibull", npar=2, reg_method="XonY")  {
 	parlist<-list(fail=x$time, ppp=x$ppp, reg_order=reg_order, dist_num=dist_num, npar=npar, limit=limit)
 	result<-.Call("LSLR2", parlist , package="ParaBoot")
 	return(result)
+	
+	## Note this is not a complete rework of original lslr
+	## continued code would assign names to the output vector elements
+	## and also call for and provide the AbPval, which really should be optional
+	## so that it can be elimintated for call from mlefit for the start vector.
 }
