@@ -53,11 +53,7 @@ SEXP Pivotal::Execute() {
 	if(seed>0) {	
 	SetSeed(seed);	
 	}
-// establish the percentiles for evaluation of confidence bounds	
-	arma::colvec CBq(ndp);	
-	for(int i = 0; i<ndp; i++)  {	
-		CBq(i)=log(log(1/(1-dp[i])));
-	}
+
 // prepare for a recovery from taking log of values equal or less than 0
 	double neginf = (-1) * std::numeric_limits<float>::max();
 	arma::rowvec QCI(ndp);
@@ -66,6 +62,11 @@ SEXP Pivotal::Execute() {
 /////////////// Weibull Implementation  /////////////////////
 /////////////////////////////////////////////////////////////
 	if(dist_num == 0)  {
+// establish the percentiles for evaluation of confidence bounds	
+		arma::colvec CBq(ndp);	
+		for(int i = 0; i<ndp; i++)  {	
+			CBq(i)=log(log(1/(1-dp[i])));
+		}		
 		int N = event.size();
 		arma::colvec y(N);
 		Rcpp::NumericVector sample;
@@ -150,7 +151,86 @@ SEXP Pivotal::Execute() {
 		}		
 			
 	// close dist_num == 0		
-	}		
+	}	
+
+/////////////////////////////////////////////////////////////							
+/////////////// Lognormal Implementation  /////////////////////							
+/////////////////////////////////////////////////////////////							
+	if(dist_num == 1)  {						
+		int N = event.size();					
+		arma::colvec y(N);					
+		Rcpp::NumericVector sample;					
+		std::vector<double> fit;
+		double t0;
+		
+		//arma::colvec coef(2);					
+// original pivotalMC code got away without sizing the coef vector because							
+// it was filled with the result of the arma::solve function.							
+							
+							
+		// will collect a sample covering both failures and suspensions					
+		// then masked by the event vector after sorting					
+							
+		double Mulog = P1;					
+		double Sigmalog = P2;					
+							
+		///////////// bootstrap loop  /////////					
+		for(unsigned int i=0; i<S; i++)  {					
+			// get a sample and mask it with event				
+			y = Rcpp::as<arma::colvec>(rlnorm(N, Mulog, Sigmalog));				
+			y = arma::sort(y);				
+			for(int j=0,k=0; j<N; j++)  {				
+				if(event[j]==0)  {y.shed_row(j-k);}			
+				k++;			
+			}				
+			sample = Rcpp::wrap(y);				
+							
+			std::unique_ptr<LSLRmodel> SAMP(new LSLRmodel(				
+				sample, positions, regression_order,			
+				dist_num, npar, limit)			
+				);			
+			fit = SAMP->LSLRfit();
+			if(fit.size() == 3) {
+				t0 = 0.0;
+			}else{
+				t0 = fit[2];
+			}
+							
+			if(R2test>0.0) {				
+				R2(i) = fit[npar];		// R2 position is dependent on npar	
+			}				
+							
+			if(CItest>0.0)  {							
+				//if(npar == 2) {			
+				//	qpiv.row(i)=log(R::qlnorm((double) dp[i],(double) fit[0],(double) fit[1],1,0)) ;			
+				//}else{							
+					for(int j=0; j<ndp; j++)  {			
+						if((R::qlnorm((double) dp[j], (double) fit[0], (double) fit[1],1,0) + t0) <= 0)  {		
+							QCI(j) = neginf;		
+						}else{		
+							QCI(j) = log(R::qlnorm((double) dp[j], (double) fit[0], (double) fit[1],1,0) + t0);		
+						}		
+					}			
+				qpiv.row(i)=QCI;		
+				//}
+			}
+
+			if(ProgRpt) {	
+				// Progress report		
+				ProgPct = (i+1)/Spct;		
+				if(ProgPct > LastPct)  {		
+					Rprintf("%3d%% completion",(i+1)/Spct);		
+					Rprintf("\r");		
+					R_FlushConsole();		
+					R_ProcessEvents();		
+				}		
+				LastPct = ProgPct;		
+			}
+		//close bootstrap loop		
+		}			
+	// close dist_num == 1		
+	}	
+		
 
 	int LCB=0;
 	arma::rowvec LBpiv(ndp);
